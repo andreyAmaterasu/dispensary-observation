@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: dispensary-observation
+  datasource:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://${spring.datasource.host};databaseName=${spring.datasource.database};applicationName=${spring.application.name};encrypt=true;trustServerCertificate=true;
+    host: host
+    database: database
+    username: username
+    password: password
+
+logging:
+  file:
+    path: logs
+    name: ${logging.file.path}/${spring.application.name}.log
+  level:
+    ru:
+      hostco: info
+    root: info
+  pattern:
+    file: '"%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"'
+
+app:
+  patientNotFoundResponseBody:
+    error: "Не найден пациент"
+  badRequestResponseBody:
+    error: "Невозможно прочитать параметры запроса"
+  sql: "set dateformat ymd; select m.SS as SNILS, m.FAMILY as lastName, m.NAME as firstName, m.OT as middleName, 
+        convert(varchar, m.DATE_BD, 23) as birthDate, m.N_POL as omsNumber, 
+        rtrim(l.MCOD) as clinicCode, mkb.DS as diagnosis
+     from hlt_MKAB m
+     left join hlt_RegMedicalCheck rmc on rmc.rf_MKABID = m.MKABID
+     left join oms_LPU l on l.LPUID = rmc.rf_LPUID
+     left join oms_MKB mkb on mkb.MKBID = rmc.rf_MKBID
+     where m.FAMILY = :lastName and m.NAME = :firstName and OT = :middleName
+        and m.DATE_BD = :birthDate and SS = :SNILS and N_POL = :number
+     order by clinicCode"
